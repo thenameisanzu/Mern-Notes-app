@@ -1,0 +1,27 @@
+# ------------------------------------
+# 1. DEPENDENCIES
+# ------------------------------------
+# Node modules for the root, backend, and frontend
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# ------------------------------------
+# 2. ENVIRONMENT VARIABLES (Secrets)
+# ------------------------------------
+# Files containing database connection strings, API keys, etc.
+.env
+/backend/.env
+/frontend/.env
+
+# ------------------------------------
+# 3. BUILD ARTIFACTS & LOGS
+# ------------------------------------
+# Files created when compiling the React app
+/frontend/build
+/frontend/dist
+
+# Other generated files
+npm-debug.log*
+yarn-error.log*
+.DS_Store
