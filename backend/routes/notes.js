@@ -2,14 +2,13 @@ const express = require("express");
 const router = express.Router();
 const Note = require("../models/Note");
 
-// Create a note
 router.post("/", async (req, res) => {
   try {
     const newNote = new Note(req.body);
     const savedNote = await newNote.save();
-    res.json(savedNote);
+    res.status(201).json(savedNote);
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json({ error: err.message });
   }
 });
 
