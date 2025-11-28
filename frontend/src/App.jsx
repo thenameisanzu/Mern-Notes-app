@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getNotes, createNote, deleteNote, updateNote } from "./services/notesAPI";
-
+import NoteCard from "./components/NoteCard"
 function App() {
   const [notes, setNotes] = useState([]);
   const [title, setTitle] = useState("");
@@ -63,38 +63,24 @@ function App() {
         </button>
       </form>
 
-      <ul style={{ marginTop: "20px" }}>
-        {notes.length === 0 && <p>No notes found</p>}
-
-        {notes.map((note) => (
-          <li key={note._id}>
-            <strong>{note.title}:</strong> {note.content}
-
-            {/* EDIT */}
-            <button
-              onClick={() => {
-                setEditId(note._id);
-                setTitle(note.title);
-                setContent(note.content);
-              }}
-              style={{ marginLeft: "10px" }}
-            >
-              Edit
-            </button>
-
-            {/* DELETE */}
-            <button
-              onClick={async () => {
-                await deleteNote(note._id);
-                fetchNotes();
-              }}
-              style={{ marginLeft: "10px" }}
-            >
-              Delete
-            </button>
-          </li>
-        ))}
-      </ul>
+      <div style={{ marginTop: "20px" }}>
+  {notes.length === 0 && <p>No notes found</p>}
+  {notes.map((note) => (
+    <NoteCard
+      key={note._id}
+      note={note}
+      onEdit={() => {
+        setEditId(note._id);
+        setTitle(note.title);
+        setContent(note.content);
+      }}
+      onDelete={async () => {
+        await deleteNote(note._id);
+        fetchNotes();
+      }}
+    />
+  ))}
+</div>
     </div>
   );
 }
