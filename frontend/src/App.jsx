@@ -2,226 +2,188 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { getNotes, createNote, deleteNote, updateNote } from "./services/notesAPI";
 
-// --- Styled Components ---
+// Palette for note cards (keeps repeating)
+const PALETTE = [
+  "#FFF9C4", // pale yellow
+  "#FFECB3", // warm cream
+  "#FFE0B2", // peach
+  "#FFCCBC", // light coral
+  "#C8E6C9", // mint
+  "#B3E5FC", // baby blue
+  "#E1BEE7", // lavender
+  "#F8BBD0", // light pink
+];
 
 const AppWrapper = styled.div`
   min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  padding: 40px 16px;
-  background: ${({ isDark }) => (isDark ? "#020617" : "#f3f4f6")};
-  color: ${({ isDark }) => (isDark ? "#e5e7eb" : "#111827")};
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  transition: background 0.25s ease, color 0.25s ease;
+  padding: 28px 18px;
+  background: ${({ isDark }) => (isDark ? "#0b1020" : "#f5f7fb")};
+  color: ${({ isDark }) => (isDark ? "#e6eef8" : "#111827")};
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  transition: background 0.2s ease;
 `;
 
-const Card = styled.div`
+/* Center card that holds everything */
+const Container = styled.div`
   width: 100%;
-  max-width: 720px;
-  background: ${({ isDark }) => (isDark ? "#020617" : "#ffffff")};
-  border-radius: 18px;
-  padding: 24px 24px 32px;
-  box-shadow: ${({ isDark }) =>
-    isDark
-      ? "0 20px 50px rgba(15,23,42,0.85)"
-      : "0 18px 45px rgba(15, 23, 42, 0.18)"};
-  border: 1px solid ${({ isDark }) => (isDark ? "#1f2937" : "transparent")};
-  transition: background 0.25s ease, box-shadow 0.25s ease, border 0.25s ease;
+  max-width: 1100px;
+  margin: 0 auto;
 `;
 
+/* Header */
 const HeaderRow = styled.div`
   display: flex;
   justify-content: space-between;
+  gap: 12px;
   align-items: center;
+  margin-bottom: 18px;
 `;
 
 const Title = styled.h1`
-  margin: 0 0 4px;
-  font-size: 26px;
-  letter-spacing: 0.02em;
-`;
-
-const Subtitle = styled.p`
-  margin: 0 0 20px;
-  font-size: 14px;
-  color: ${({ isDark }) => (isDark ? "#9ca3af" : "#6b7280")};
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: 0.01em;
 `;
 
 const ToggleButton = styled.button`
-  padding: 6px 12px;
+  padding: 8px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.5);
-  background: ${({ isDark }) =>
-    isDark ? "rgba(15,23,42,0.9)" : "rgba(255,255,255,0.9)"};
-  color: ${({ isDark }) => (isDark ? "#e5e7eb" : "#111827")};
-  font-size: 12px;
+  border: none;
+  background: ${({ isDark }) => (isDark ? "#1f2937" : "#ffffff")};
+  color: ${({ isDark }) => (isDark ? "#e6eef8" : "#111827")};
+  box-shadow: ${({ isDark }) =>
+    isDark ? "0 6px 18px rgba(2,6,23,0.6)" : "0 6px 18px rgba(2,6,23,0.06)"};
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: background 0.2s ease, transform 0.08s ease, box-shadow 0.12s ease;
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: ${({ isDark }) =>
-      isDark
-        ? "0 8px 20px rgba(15,23,42,0.8)"
-        : "0 8px 20px rgba(148,163,184,0.45)"};
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: none;
-  }
+  font-size: 13px;
 `;
 
-const Form = styled.form`
+/* Form */
+const FormCard = styled.div`
+  background: ${({ isDark }) => (isDark ? "#071028" : "#ffffff")};
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: ${({ isDark }) =>
+    isDark ? "0 10px 30px rgba(2,6,23,0.6)" : "0 10px 30px rgba(2,6,23,0.06)"};
+  margin-bottom: 18px;
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 24px;
-`;
-
-const InputsRow = styled.div`
-  display: flex;
-  flex-direction: column;
   gap: 10px;
-
-  @media (min-width: 640px) {
-    flex-direction: row;
-  }
+  align-items: center;
+  flex-wrap: wrap;
 `;
 
-const TextInput = styled.input`
-  flex: 1;
+const TitleInput = styled.input`
+  flex: 1 1 100%;
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  font-size: 14px;
+  border: 1px solid ${({ isDark }) => (isDark ? "#10314a" : "#e6e9ef")};
+  background: ${({ isDark }) => (isDark ? "#051224" : "#ffffff")};
+  color: ${({ isDark }) => (isDark ? "#dff1ff" : "#0b1220")};
   outline: none;
-  transition: border 0.2s ease, box-shadow 0.2s ease, transform 0.05s ease,
-    background 0.2s ease, color 0.2s ease;
-  background: ${({ isDark }) => (isDark ? "#020617" : "#f9fafb")};
-  color: ${({ isDark }) => (isDark ? "#e5e7eb" : "#111827")};
+  font-size: 15px;
+  height: 42px;    /* 👈 Title height */
+`;
 
-  &:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
-    background: ${({ isDark }) => (isDark ? "#020617" : "#ffffff")};
-  }
-
-  &::placeholder {
-    color: ${({ isDark }) => (isDark ? "#6b7280" : "#9ca3af")};
-  }
+const ContentInput = styled.textarea`
+  flex: 1 1 100%;
+  padding: 12px 12px;
+  border-radius: 10px;
+  border: 1px solid ${({ isDark }) => (isDark ? "#10314a" : "#e6e9ef")};
+  background: ${({ isDark }) => (isDark ? "#051224" : "#ffffff")};
+  color: ${({ isDark }) => (isDark ? "#dff1ff" : "#0b1220")};
+  outline: none;
+  font-size: 14px;
+  resize: none;              /* No manual resize */
+  min-height: 90px;          /* 👈 Bigger content box */
+  line-height: 1.4;
 `;
 
 const PrimaryButton = styled.button`
-  align-self: flex-start;
-  padding: 8px 18px;
+  padding: 9px 14px;
   border-radius: 999px;
   border: none;
-  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  background: linear-gradient(135deg, #7c5cff, #4f46e5);
   color: white;
   font-weight: 600;
-  font-size: 14px;
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.15s ease;
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 24px rgba(79, 70, 229, 0.45);
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: none;
-    opacity: 0.88;
-  }
+  font-size: 14px;
 `;
 
-const NotesList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin: 0;
+/* Grid for notes — responsive */
+const NotesGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+`;
+
+/* Each note card — receives bg color prop */
+const NoteCard = styled.div`
+  background: ${({ bg }) => bg};
+  border-radius: 12px;
+  padding: 12px 12px;
+  box-shadow: 0 8px 20px rgba(12, 15, 20, 0.08);
+  min-height: 90px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+  word-wrap: break-word;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 40px rgba(12, 15, 20, 0.12);
+  }
 `;
 
-const NoteItem = styled.li`
-  background: ${({ isDark }) => (isDark ? "#020617" : "#f9fafb")};
-  border-radius: 12px;
-  padding: 12px 14px;
-  border: 1px solid ${({ isDark }) => (isDark ? "#1f2937" : "#e5e7eb")};
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
-  transition: background 0.2s ease, border 0.2s ease;
+/* When in dark mode, slightly darken the palette */
+const NeutralNoteCard = styled(NoteCard)`
+  background: ${({ isDark }) => (isDark ? "#0b1220" : "#fff")};
 `;
 
-const NoteTextWrapper = styled.div`
-  flex: 1;
-`;
-
+/* Title and content style inside note */
 const NoteTitle = styled.h3`
   margin: 0;
-  font-size: 16px;
+  font-size: 15px;
+  font-weight: 700;
+  color: ${({ isDark }) => (isDark ? "#e8f6ff" : "#0b1220")};
 `;
 
 const NoteContent = styled.p`
-  margin: 4px 0 0;
-  font-size: 14px;
-  color: ${({ isDark }) => (isDark ? "#d1d5db" : "#4b5563")};
+  margin: 0;
+  font-size: 13px;
+  color: ${({ isDark }) => (isDark ? "#d7eaf8" : "#1f2937")};
+  white-space: pre-wrap;
 `;
 
+/* Actions row */
 const NoteActions = styled.div`
+  margin-top: auto;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-
-  @media (min-width: 480px) {
-    flex-direction: row;
-  }
+  gap: 8px;
+  justify-content: flex-end;
 `;
 
-const ActionButton = styled.button`
-  padding: 4px 10px;
+const ActionBtn = styled.button`
+  padding: 6px 9px;
   border-radius: 999px;
   border: none;
   font-size: 12px;
   cursor: pointer;
   color: white;
-  transition: opacity 0.15s ease, transform 0.05s ease;
-
-  &.edit {
-    background: #0ea5e9;
-  }
-
-  &.delete {
-    background: #ef4444;
-  }
-
-  &:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
+  background: ${({ kind }) => (kind === "edit" ? "#0ea5e9" : "#ef4444")};
 `;
 
-const EmptyText = styled.p`
-  margin: 12px 0 0;
-  font-size: 14px;
-  color: ${({ isDark }) => (isDark ? "#6b7280" : "#9ca3af")};
+/* Empty placeholder */
+const EmptyText = styled.div`
+  padding: 24px;
+  text-align: center;
+  color: ${({ isDark }) => (isDark ? "#7f95ad" : "#9aa6b8")};
 `;
 
-// --- Component Logic ---
+/* small helper for note date (optional) */
+const NoteMeta = styled.div`
+  font-size: 11px;
+  color: rgba(10, 20, 30, 0.45);
+`;
 
 function App() {
   const [notes, setNotes] = useState([]);
@@ -245,15 +207,13 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    if (!title.trim() && !content.trim()) return; // avoid empty
     if (editId) {
       await updateNote(editId, { title, content });
     } else {
       await createNote({ title, content });
     }
-
     await fetchNotes();
-
     setTitle("");
     setContent("");
     setEditId(null);
@@ -261,87 +221,71 @@ function App() {
 
   return (
     <AppWrapper isDark={isDark}>
-      <Card isDark={isDark}>
+      <Container>
         <HeaderRow>
-          <div>
-            <Title>Notes App</Title>
-            <Subtitle isDark={isDark}>
-              Add quick notes, update them, or delete anytime.
-            </Subtitle>
-          </div>
-
-          <ToggleButton
-            type="button"
-            isDark={isDark}
-            onClick={() => setIsDark((prev) => !prev)}
-          >
-            {isDark ? "☀ Light mode" : "🌙 Dark mode"}
+          <Title>Notes</Title>
+          <ToggleButton isDark={isDark} onClick={() => setIsDark((p) => !p)}>
+            {isDark ? "☀ Light" : "🌙 Dark"}
           </ToggleButton>
         </HeaderRow>
 
-        {/* Styled Form */}
-        <Form onSubmit={handleSubmit}>
-          <InputsRow>
-            <TextInput
-              isDark={isDark}
-              type="text"
-              placeholder="Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-            <TextInput
-              isDark={isDark}
-              type="text"
-              placeholder="Content"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              required
-            />
-          </InputsRow>
-
-          <PrimaryButton type="submit">
-            {editId ? "Update note" : "Add note"}
+        <FormCard isDark={isDark}>
+          <TitleInput
+            isDark={isDark}
+            placeholder="Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+          <ContentInput
+            isDark={isDark}
+            placeholder="Content"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+          />
+          <PrimaryButton onClick={handleSubmit}>
+            {editId ? "Update" : "Add"}
           </PrimaryButton>
-        </Form>
+        </FormCard>
 
-        {/* Notes list */}
-        <NotesList>
-          {notes.length === 0 && <EmptyText isDark={isDark}>No notes found</EmptyText>}
+        <NotesGrid>
+          {notes.length === 0 && <EmptyText isDark={isDark}>No notes yet — add your first one.</EmptyText>}
 
-          {notes.map((note) => (
-            <NoteItem key={note._id} isDark={isDark}>
-              <NoteTextWrapper>
-                <NoteTitle>{note.title}</NoteTitle>
+          {notes.map((note, idx) => {
+            // pick palette color by index (wrap)
+            const color = PALETTE[idx % PALETTE.length];
+            const bg = isDark ? "#0b1220" : color; // in dark mode keep neutral dark bg
+            return (
+              <NoteCard key={note._id} bg={bg} isDark={isDark}>
+                <NoteTitle isDark={isDark}>{note.title}</NoteTitle>
                 <NoteContent isDark={isDark}>{note.content}</NoteContent>
-              </NoteTextWrapper>
 
-              <NoteActions>
-                <ActionButton
-                  className="edit"
-                  onClick={() => {
-                    setEditId(note._id);
-                    setTitle(note.title);
-                    setContent(note.content);
-                  }}
-                >
-                  Edit
-                </ActionButton>
+                <NoteActions>
+                  <ActionBtn
+                    kind="edit"
+                    onClick={() => {
+                      setEditId(note._id);
+                      setTitle(note.title);
+                      setContent(note.content);
+                    }}
+                  >
+                    Edit
+                  </ActionBtn>
 
-                <ActionButton
-                  className="delete"
-                  onClick={async () => {
-                    await deleteNote(note._id);
-                    fetchNotes();
-                  }}
-                >
-                  Delete
-                </ActionButton>
-              </NoteActions>
-            </NoteItem>
-          ))}
-        </NotesList>
-      </Card>
+                  <ActionBtn
+                    kind="delete"
+                    onClick={async () => {
+                      await deleteNote(note._id);
+                      fetchNotes();
+                    }}
+                  >
+                    Delete
+                  </ActionBtn>
+                </NoteActions>
+              </NoteCard>
+            );
+          })}
+        </NotesGrid>
+      </Container>
     </AppWrapper>
   );
 }
